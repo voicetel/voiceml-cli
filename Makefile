@@ -1,0 +1,94 @@
+# voiceml-cli — cross-platform build matrix.
+#
+# Pure-Go (CGO_ENABLED=0) so cross-compilation works without per-target
+# C toolchains. None of the SDK / readline / TOML deps need cgo.
+#
+# Targets:
+#   make build       Build for the local platform → ./bin/voiceml-cli
+#   make build-all   Cross-compile for every supported (OS, arch) → ./dist/
+#   make release     build-all + per-platform archives (.tar.gz / .zip)
+#   make test        go test ./...
+#   make vet         go vet ./...
+#   make install     CGO_ENABLED=0 go install . (lands in $$GOPATH/bin)
+#   make clean       Remove ./bin and ./dist
+#   make version     Print the version Makefile sees
+
+BINARY     := voiceml-cli
+VERSION    := $(shell awk -F'"' '/^[[:space:]]*Version[[:space:]]*=/ {print $$2; exit}' version.go)
+BUILD_TIME := $(shell date -u '+%Y-%m-%d %H:%M:%S UTC')
+GIT_COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+
+LDFLAGS := -s -w \
+	-X 'main.Version=$(VERSION)' \
+	-X 'main.BuildTime=$(BUILD_TIME)' \
+	-X 'main.GitCommit=$(GIT_COMMIT)'
+
+PLATFORMS := \
+	darwin/amd64 \
+	darwin/arm64 \
+	linux/amd64 \
+	linux/arm64 \
+	linux/386 \
+	linux/arm \
+	windows/amd64 \
+	windows/arm64 \
+	freebsd/amd64
+
+.PHONY: help build build-all release test vet install clean version
+
+help:
+	@echo "voiceml-cli $(VERSION) — make targets:"
+	@echo "  build       Build the binary for the local platform (./bin/$(BINARY))"
+	@echo "  build-all   Cross-compile for $(words $(PLATFORMS)) platforms into ./dist/"
+	@echo "  release     build-all + per-platform archive (.tar.gz / .zip)"
+	@echo "  test        Run go test ./..."
+	@echo "  vet         Run go vet ./..."
+	@echo "  install     CGO_ENABLED=0 go install . (lands in \$$GOPATH/bin)"
+	@echo "  clean       Remove ./bin and ./dist"
+	@echo "  version     Print $(VERSION)"
+
+version:
+	@echo $(VERSION)
+
+build:
+	@mkdir -p bin
+	CGO_ENABLED=0 go build -ldflags="$(LDFLAGS)" -o bin/$(BINARY) .
+	@echo "→ bin/$(BINARY) ($(VERSION))"
+
+test:
+	go test ./...
+
+vet:
+	go vet ./...
+
+install:
+	CGO_ENABLED=0 go install -ldflags="$(LDFLAGS)" .
+
+clean:
+	rm -rf bin dist
+
+build-all: clean
+	@mkdir -p dist
+	@for platform in $(PLATFORMS); do \
+		os=$$(echo $$platform | cut -d/ -f1); \
+		arch=$$(echo $$platform | cut -d/ -f2); \
+		ext=""; \
+		[ "$$os" = "windows" ] && ext=".exe"; \
+		dir="dist/$(BINARY)_$(VERSION)_$$os-$$arch"; \
+		echo "→ $$dir/$(BINARY)$$ext"; \
+		mkdir -p "$$dir"; \
+		CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch go build -ldflags="$(LDFLAGS)" \
+			-o "$$dir/$(BINARY)$$ext" . || exit 1; \
+		cp LICENSE README.md "$$dir/" 2>/dev/null || true; \
+	done
+	@echo "Built $(words $(PLATFORMS)) binaries in ./dist/"
+
+release: build-all
+	@cd dist && for d in $(BINARY)_$(VERSION)_*/; do \
+		base=$$(basename $$d); \
+		case "$$base" in \
+			*windows*) zip -qr "$$base.zip" "$$base" && echo "📦 $$base.zip" ;; \
+			*)         tar czf "$$base.tar.gz" "$$base" && echo "📦 $$base.tar.gz" ;; \
+		esac; \
+	done
+	@echo "Release archives ready in ./dist/"
