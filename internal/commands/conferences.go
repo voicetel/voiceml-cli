@@ -141,7 +141,7 @@ func registerConferences(r *Registry) {
 				if err := requireArgs("conferences list-recordings", args, 1, "<conference_sid>"); err != nil {
 					return err
 				}
-				out, err := c.Client.Conferences().ListRecordings(c.Ctx, args[0])
+				out, err := c.Client.Conferences().ListRecordings(c.Ctx, args[0], voiceml.ListCallRecordingsParams{})
 				return printResultG(c, out, err)
 			},
 		},

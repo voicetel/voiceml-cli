@@ -13,7 +13,7 @@ func registerQueues(r *Registry) {
 				if err := requireConfigured(c); err != nil {
 					return err
 				}
-				out, err := c.Client.Queues().List(c.Ctx)
+				out, err := c.Client.Queues().List(c.Ctx, voiceml.ListPageParams{})
 				return printResultG(c, out, err)
 			},
 		},
