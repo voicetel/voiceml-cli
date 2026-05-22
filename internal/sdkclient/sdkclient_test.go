@@ -9,7 +9,7 @@ import (
 const (
 	testUA         = "voiceml-cli-test/0.0.0"
 	testAccountSid = "ACffffffffffffffffffffffffffffffff"
-	testAPIKey     = "secret-api-key-value"
+	testAPIKey     = "test-api-key-not-real" // #nosec G101 -- test fixture only
 	testBaseURL    = "https://example.invalid"
 )
 

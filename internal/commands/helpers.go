@@ -3,7 +3,6 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 	"unicode"
 )
@@ -60,14 +59,6 @@ func requireArgs(label string, args []string, n int, hint string) error {
 		return fmt.Errorf("%s: expected %d argument(s) — %s", label, n, hint)
 	}
 	return nil
-}
-
-func argInt(label string, raw string) (int, error) {
-	n, err := strconv.Atoi(raw)
-	if err != nil {
-		return 0, fmt.Errorf("%s: expected integer, got %q", label, raw)
-	}
-	return n, nil
 }
 
 func requireConfigured(c *Context) error {
