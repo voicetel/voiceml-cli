@@ -49,13 +49,13 @@ func run(args []string, stdout, stderr io.Writer) error {
 	fs := flag.NewFlagSet("voiceml-cli", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	var (
-		baseURL     = fs.String("base-url", "", "Override the API endpoint for this session.")
-		accountSid  = fs.String("account-sid", "", "Account SID for this session (not persisted).")
-		apiKey      = fs.String("api-key", "", "API key for this session (not persisted).")
-		oneShot     = fs.String("x", "", "Run a single command non-interactively and exit. Example: -x 'calls list'")
-		cpuProfile  = fs.String("cpu-profile", "", "Write a CPU profile to the given file (e.g. cpu.pprof). Hidden debug flag.")
-		memProfile  = fs.String("mem-profile", "", "Write a heap profile to the given file (e.g. mem.pprof). Hidden debug flag.")
-		showVer     = fs.Bool("version", false, "Print version and exit.")
+		baseURL    = fs.String("base-url", "", "Override the API endpoint for this session.")
+		accountSid = fs.String("account-sid", "", "Account SID for this session (not persisted).")
+		apiKey     = fs.String("api-key", "", "API key for this session (not persisted).")
+		oneShot    = fs.String("x", "", "Run a single command non-interactively and exit. Example: -x 'calls list'")
+		cpuProfile = fs.String("cpu-profile", "", "Write a CPU profile to the given file (e.g. cpu.pprof). Hidden debug flag.")
+		memProfile = fs.String("mem-profile", "", "Write a heap profile to the given file (e.g. mem.pprof). Hidden debug flag.")
+		showVer    = fs.Bool("version", false, "Print version and exit.")
 	)
 	fs.Usage = func() { usage(stderr, fs) }
 	if err := fs.Parse(args); err != nil {
