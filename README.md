@@ -1,6 +1,6 @@
 # VoiceML CLI
 
-Interactive REPL for the [VoiceML REST API](https://voiceml.voicetel.com) — outbound voice, AMD, conferences, queues, and Twilio-shaped resources on top of the [VoiceML Go SDK](../go).
+Interactive REPL for the [VoiceML REST API](https://voicetel.com/docs/api/v0.6/voiceml/) — outbound voice, AMD, conferences, queues, and Twilio-compatible resources on top of the [VoiceML Go SDK](../go).
 
 ![Version](https://img.shields.io/badge/version-0.1.0-blue)
 ![Go](https://img.shields.io/badge/go-1.22%2B-blue)

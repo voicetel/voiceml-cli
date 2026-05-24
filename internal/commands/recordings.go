@@ -37,7 +37,7 @@ func registerRecordings(r *Registry) {
 				if err := requireArgs("recordings get", args, 1, "<recording_sid>"); err != nil {
 					return err
 				}
-				out, err := c.Client.Recordings().Get(c.Ctx, args[0])
+				out, err := c.Client.Recordings().Get(c.Ctx, args[0], nil)
 				return printResultG(c, out, err)
 			},
 		},
