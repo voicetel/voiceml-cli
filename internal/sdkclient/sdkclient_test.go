@@ -56,6 +56,7 @@ func TestServiceAccessorsAllReturnNonNil(t *testing.T) {
 		"Applications":         c.Applications(),
 		"Recordings":           c.Recordings(),
 		"IncomingPhoneNumbers": c.IncomingPhoneNumbers(),
+		"Messages":             c.Messages(),
 		"Diagnostics":          c.Diagnostics(),
 	}
 	for name, svc := range cases {

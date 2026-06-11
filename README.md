@@ -2,7 +2,7 @@
 
 Interactive REPL for the [VoiceML REST API](https://voicetel.com/docs/api/v0.6/voiceml/) — outbound voice, AMD, conferences, queues, and Twilio-compatible resources on top of the [VoiceML Go SDK](../go).
 
-![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![Version](https://img.shields.io/badge/version-0.2.0-blue)
 ![Go](https://img.shields.io/badge/go-1.22%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Platforms](https://img.shields.io/badge/platforms-linux%20%7C%20macos%20%7C%20windows-lightgrey)
@@ -13,7 +13,7 @@ Interactive REPL for the [VoiceML REST API](https://voicetel.com/docs/api/v0.6/v
 - **One-shot mode** via `-x 'command'` for scripts and CI
 - **HTTP Basic auth** — Account SID (username) + API key (password)
 - **Colorized JSON** on TTYs; plain JSON when piped
-- **Resource groups**: calls, conferences, queues, applications, recordings, incoming-phone-numbers, diagnostics
+- **Resource groups**: calls, conferences, queues, applications, recordings, incoming-phone-numbers, messages, diagnostics
 - **Cross-compile** to 9 platforms via `make build-all`
 
 ## Installation
@@ -28,7 +28,7 @@ make install  # → $GOPATH/bin/voiceml-cli
 
 ```text
 $ voiceml-cli
-VoiceML CLI 0.1.0  —  type `help` for commands, `exit` to quit.
+VoiceML CLI 0.2.0  —  type `help` for commands, `exit` to quit.
 Endpoint: https://voiceml.voicetel.com
 No credentials configured. Run `login <account_sid> <api_key>` or set env vars.
 
@@ -105,6 +105,8 @@ calls get <sid>
 calls create <json>
 calls update <sid> <json>
 calls delete <sid>
+calls start-payment <call_sid> <json>
+calls update-payment <call_sid> <payment_sid> [json]
 
 conferences list|get|end|list-participants|get-participant|update-participant|kick-participant|list-recordings
 
@@ -116,10 +118,12 @@ recordings list [json]|get|get-audio|delete
 
 incoming-phone-numbers list [json]|get|create|update|delete
 
+messages list [json]|get|create|update|delete
+
 diagnostics health|openapi
 ```
 
-List commands accept optional JSON filter objects matching the Go SDK list params (v0.6.x), e.g.:
+List commands accept optional JSON filter objects matching the Go SDK list params (v0.7.x), e.g.:
 
 ```text
 calls list {"Status":"completed","PageSize":50}

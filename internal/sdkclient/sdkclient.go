@@ -27,6 +27,7 @@ type Client interface {
 	Applications() *voiceml.ApplicationsService
 	Recordings() *voiceml.RecordingsService
 	IncomingPhoneNumbers() *voiceml.IncomingPhoneNumbersService
+	Messages() *voiceml.MessagesService
 	Diagnostics() *voiceml.DiagnosticsService
 }
 
@@ -134,6 +135,12 @@ func (r *realClient) Recordings() *voiceml.RecordingsService {
 func (r *realClient) IncomingPhoneNumbers() *voiceml.IncomingPhoneNumbersService {
 	if c := r.innerOrNil(); c != nil {
 		return c.IncomingPhoneNumbers
+	}
+	return nil
+}
+func (r *realClient) Messages() *voiceml.MessagesService {
+	if c := r.innerOrNil(); c != nil {
+		return c.Messages
 	}
 	return nil
 }

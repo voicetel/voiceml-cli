@@ -174,6 +174,7 @@ func BuildRegistry() *Registry {
 	registerApplications(r)
 	registerRecordings(r)
 	registerIncomingPhoneNumbers(r)
+	registerMessages(r)
 	registerDiagnostics(r)
 
 	for _, g := range r.Groups {

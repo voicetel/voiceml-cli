@@ -89,6 +89,44 @@ func registerCalls(r *Registry) {
 				return nil
 			},
 		},
+		{
+			Names:    []string{"start-payment"},
+			Synopsis: "Begin a <Pay> session on a live call.",
+			Usage:    `calls start-payment <call_sid> <json>  e.g. {"ChargeAmount":"9.99","Currency":"USD","PaymentMethod":"credit-card","TokenType":"one-time"}`,
+			Run: func(c *Context, args []string, tail string) error {
+				if err := requireConfigured(c); err != nil {
+					return err
+				}
+				if err := requireArgs("calls start-payment", args, 1, "<call_sid> <json>"); err != nil {
+					return err
+				}
+				var body voiceml.CreatePaymentParams
+				if err := parseJSON("calls start-payment", skipArgs(tail, 1), &body); err != nil {
+					return err
+				}
+				out, err := c.Client.Calls().StartPayment(c.Ctx, args[0], body)
+				return printResultG(c, out, err)
+			},
+		},
+		{
+			Names:    []string{"update-payment"},
+			Synopsis: "Advance or terminate a <Pay> session on a live call.",
+			Usage:    `calls update-payment <call_sid> <payment_sid> [json]  e.g. {"Status":"complete"}  or  {"Capture":"security-code"}`,
+			Run: func(c *Context, args []string, tail string) error {
+				if err := requireConfigured(c); err != nil {
+					return err
+				}
+				if err := requireArgs("calls update-payment", args, 2, "<call_sid> <payment_sid> [json]"); err != nil {
+					return err
+				}
+				var body voiceml.UpdatePaymentParams
+				if err := parseOptionalJSON("calls update-payment", skipArgs(tail, 2), &body); err != nil {
+					return err
+				}
+				out, err := c.Client.Calls().UpdatePayment(c.Ctx, args[0], args[1], body)
+				return printResultG(c, out, err)
+			},
+		},
 	}
 	r.AddGroup(g)
 }
