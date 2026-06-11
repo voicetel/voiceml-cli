@@ -1,12 +1,12 @@
 module github.com/voicetel/voiceml-cli
 
-go 1.22
+go 1.25.0
 
 require (
 	github.com/chzyer/readline v1.5.1
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/voicetel/voiceml-go-sdk v0.7.0
-	golang.org/x/term v0.26.0
+	golang.org/x/term v0.44.0
 )
 
-require golang.org/x/sys v0.27.0 // indirect
+require golang.org/x/sys v0.46.0 // indirect
