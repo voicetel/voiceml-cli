@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/chzyer/readline v1.5.1
 	github.com/pelletier/go-toml/v2 v2.3.1
-	github.com/voicetel/voiceml-go-sdk v0.7.2-0.20260612123845-b7c9471095f4
+	github.com/voicetel/voiceml-go-sdk v0.8.1
 	golang.org/x/term v0.44.0
 )
 
