@@ -6,7 +6,7 @@ require (
 	github.com/chzyer/readline v1.5.1
 	github.com/pelletier/go-toml/v2 v2.4.3
 	github.com/voicetel/voiceml-go-sdk v0.9.2
-	golang.org/x/term v0.44.0
+	golang.org/x/term v0.45.0
 )
 
-require golang.org/x/sys v0.46.0 // indirect
+require golang.org/x/sys v0.47.0 // indirect
