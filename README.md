@@ -127,7 +127,7 @@ List commands accept optional JSON filter objects matching the Go SDK list param
 
 ```text
 calls list {"Status":"completed","PageSize":50}
-incoming-phone-numbers list {"PhoneNumber":"+18005551234"}
+incoming-phone-numbers list {"PhoneNumber":"+14155550100"}
 recordings list {"PageSize":20}
 ```
 

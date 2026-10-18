@@ -3,23 +3,43 @@ package commands
 import (
 	"fmt"
 	"strings"
+
+	"github.com/voicetel/voiceml-cli/internal/config"
 )
 
 func loginCommand() *Command {
 	return &Command{
 		Names:    []string{"login"},
 		Synopsis: "Install Account SID + API key (HTTP Basic auth).",
-		Usage: "login <account_sid> <api_key>\n" +
-			"  AccountSid is the Twilio-format identifier (AC…). API key is the HTTP Basic password.\n" +
-			"  Both values are persisted to ~/.voiceml/config.toml.",
+		Usage: "login <account_sid> [api_key]\n" +
+			"  Uses your VoiceML AccountSid (AC…) and API key for HTTP Basic authentication.\n" +
+			"  Omit the key for hidden terminal input. Saves both values to ~/.voiceml/config.toml.",
 		Run: func(c *Context, args []string, _ string) error {
-			if len(args) != 2 {
-				return fmt.Errorf("login: expected 2 arguments (account_sid, api_key), got %d", len(args))
+			if len(args) < 1 || len(args) > 2 {
+				return usageError("login: expected account_sid and optional api_key")
 			}
-			c.Client.SetCredentials(args[0], args[1])
+			var key string
+			if len(args) == 2 {
+				key = args[1]
+			} else {
+				if c.ReadSecret == nil {
+					return usageError("login: hidden input requires a terminal; use --api-key-stdin for a session key")
+				}
+				var err error
+				key, err = c.ReadSecret()
+				if err != nil {
+					return err
+				}
+			}
+			if key == "" || args[0] == "" {
+				return usageError("login: Account SID and API key must not be empty")
+			}
 			if c.OnConfigChanged != nil {
-				c.OnConfigChanged()
+				if err := c.OnConfigChanged(config.Change{AccountSid: &args[0], APIKey: &key}); err != nil {
+					return fmt.Errorf("config: save: %w", err)
+				}
 			}
+			c.Client.SetCredentials(args[0], key)
 			c.Printer.Println("Credentials installed and saved.")
 			return nil
 		},
@@ -34,27 +54,31 @@ func setCommand() *Command {
 			"set api-key <key>       Install the API key.\n" +
 			"set base-url <url>      Override the API endpoint (requires restart).",
 		Run: func(c *Context, args []string, _ string) error {
-			if len(args) < 2 {
-				return fmt.Errorf("set: expected `account-sid`, `api-key`, or `base-url` with a value")
+			if len(args) != 2 || args[1] == "" {
+				return usageError("set: expected `account-sid` or `api-key` with one nonempty value")
 			}
+			var change config.Change
 			switch args[0] {
 			case "account-sid", "accountsid", "sid":
-				c.Client.SetAccountSid(args[1])
-				if c.OnConfigChanged != nil {
-					c.OnConfigChanged()
-				}
-				c.Printer.Println("Account SID installed.")
+				change.AccountSid = &args[1]
 			case "api-key", "apikey", "key":
-				c.Client.SetAPIKey(args[1])
-				if c.OnConfigChanged != nil {
-					c.OnConfigChanged()
-				}
-				c.Printer.Println("API key installed.")
+				change.APIKey = &args[1]
 			case "base-url", "baseurl", "url":
-				return fmt.Errorf("set base-url: not mutable after start; restart with --base-url")
+				return usageError("set base-url: not mutable after start; restart with --base-url")
 			default:
-				return fmt.Errorf("set: unknown key %q (use account-sid, api-key, or base-url)", args[0])
+				return usageError("set: unknown key %q (use account-sid or api-key)", args[0])
 			}
+			if c.OnConfigChanged != nil {
+				if err := c.OnConfigChanged(change); err != nil {
+					return fmt.Errorf("config: save: %w", err)
+				}
+			}
+			if change.AccountSid != nil {
+				c.Client.SetAccountSid(*change.AccountSid)
+			} else {
+				c.Client.SetAPIKey(*change.APIKey)
+			}
+			c.Printer.Println("Credential updated and saved.")
 			return nil
 		},
 	}

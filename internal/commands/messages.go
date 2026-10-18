@@ -8,7 +8,7 @@ func registerMessages(r *Registry) {
 		{
 			Names:    []string{"list"},
 			Synopsis: "List messages with optional filters.",
-			Usage:    `messages list [json]  e.g. {"To":"+18005551234","PageSize":20}`,
+			Usage:    `messages list [json]  e.g. {"To":"+14155550100","PageSize":20}`,
 			Run: func(c *Context, _ []string, tail string) error {
 				if err := requireConfigured(c); err != nil {
 					return err
@@ -39,7 +39,7 @@ func registerMessages(r *Registry) {
 		{
 			Names:    []string{"create"},
 			Synopsis: "Dispatch a new outbound SMS.",
-			Usage:    `messages create <json>  e.g. {"To":"+18005551234","Body":"hello","From":"+18005550000"}`,
+			Usage:    `messages create <json>  e.g. {"To":"+14155550100","Body":"hello","From":"+14155550101"}`,
 			Run: func(c *Context, _ []string, tail string) error {
 				if err := requireConfigured(c); err != nil {
 					return err

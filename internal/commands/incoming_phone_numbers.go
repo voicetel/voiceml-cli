@@ -12,7 +12,7 @@ func registerIncomingPhoneNumbers(r *Registry) {
 		{
 			Names:    []string{"list"},
 			Synopsis: "List incoming phone numbers with optional filters.",
-			Usage:    `incoming-phone-numbers list [json]  e.g. {"PhoneNumber":"+18005551234","PageSize":20}`,
+			Usage:    `incoming-phone-numbers list [json]  e.g. {"PhoneNumber":"+14155550100","PageSize":20}`,
 			Run: func(c *Context, _ []string, tail string) error {
 				if err := requireConfigured(c); err != nil {
 					return err
@@ -47,7 +47,7 @@ func registerIncomingPhoneNumbers(r *Registry) {
 		{
 			Names:    []string{"create"},
 			Synopsis: "Assign a DID to the tenant.",
-			Usage:    `incoming-phone-numbers create <json>  e.g. {"PhoneNumber":"+18005551234"}`,
+			Usage:    `incoming-phone-numbers create <json>  e.g. {"PhoneNumber":"+14155550100"}`,
 			Run: func(c *Context, _ []string, tail string) error {
 				if err := requireConfigured(c); err != nil {
 					return err

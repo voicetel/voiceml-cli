@@ -81,11 +81,12 @@ func (f *FlagSet) Parse(args []string) error {
 				*p = value
 				continue
 			}
-			if i+1 >= len(args) {
+			rest := args[i+1:]
+			if len(rest) == 0 {
 				return fmt.Errorf("flag --%s requires a value", name)
 			}
 			i++
-			*p = args[i] //nolint:gosec // bounds checked one line above
+			*p = rest[0]
 			continue
 		}
 		return fmt.Errorf("unknown flag --%s", name)

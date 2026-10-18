@@ -10,10 +10,12 @@ package output
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 
+	voiceml "github.com/voicetel/voiceml-go-sdk"
 	"golang.org/x/term"
 )
 
@@ -32,20 +34,22 @@ const (
 // process; it is safe for concurrent use as long as the underlying
 // writer is.
 type Printer struct {
-	out   io.Writer
-	err   io.Writer
-	color bool
+	out      io.Writer
+	err      io.Writer
+	colorOut bool
+	colorErr bool
 }
 
 // New returns a Printer that writes to out (success) and err (errors).
-// Colorisation is enabled when err is connected to a terminal.
+// Colour is determined independently for each destination and honours NO_COLOR.
 func New(out, err io.Writer) *Printer {
-	return &Printer{out: out, err: err, color: isTerminal(err)}
+	_, noColor := os.LookupEnv("NO_COLOR")
+	return &Printer{out: out, err: err, colorOut: !noColor && isTerminal(out), colorErr: !noColor && isTerminal(err)}
 }
 
 // NewWithColor lets tests opt in or out of colour explicitly.
 func NewWithColor(out, err io.Writer, color bool) *Printer {
-	return &Printer{out: out, err: err, color: color}
+	return &Printer{out: out, err: err, colorOut: color, colorErr: color}
 }
 
 // JSON pretty-prints v to the success writer. When colour is enabled,
@@ -55,12 +59,16 @@ func (p *Printer) JSON(v any) error {
 	if v == nil {
 		return nil
 	}
-	b, err := json.MarshalIndent(v, "", "  ")
-	if err != nil {
+	var buf bytes.Buffer
+	enc := json.NewEncoder(&buf)
+	enc.SetIndent("", "  ")
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(v); err != nil {
 		return fmt.Errorf("output: marshal: %w", err)
 	}
+	b := bytes.TrimSuffix(buf.Bytes(), []byte{'\n'})
 	payload := string(b)
-	if p.color {
+	if p.colorOut {
 		payload = colorizeJSON(b)
 	}
 	if _, err := fmt.Fprintln(p.out, payload); err != nil {
@@ -71,12 +79,12 @@ func (p *Printer) JSON(v any) error {
 
 // Println writes a plain message to the success writer with a trailing newline.
 func (p *Printer) Println(msg string) {
-	fmt.Fprintln(p.out, msg)
+	_, _ = fmt.Fprintln(p.out, msg)
 }
 
 // Printf writes a formatted message to the success writer.
 func (p *Printer) Printf(format string, args ...any) {
-	fmt.Fprintf(p.out, format, args...)
+	_, _ = fmt.Fprintf(p.out, format, args...)
 }
 
 // Error writes err to the error writer, colourising in red when the
@@ -85,11 +93,16 @@ func (p *Printer) Error(err error) {
 	if err == nil {
 		return
 	}
-	if p.color {
-		fmt.Fprintf(p.err, "%s%sError:%s %s\n", ansiRed, ansiBold, ansiReset, err.Error())
+	message := err.Error()
+	var apiErr *voiceml.APIError
+	if errors.As(err, &apiErr) {
+		message = fmt.Sprintf("%s (code: %d, more_info: %s)", message, apiErr.Code, apiErr.MoreInfo)
+	}
+	if p.colorErr {
+		_, _ = fmt.Fprintf(p.err, "%s%sError:%s %s\n", ansiRed, ansiBold, ansiReset, message)
 		return
 	}
-	fmt.Fprintf(p.err, "Error: %s\n", err.Error())
+	_, _ = fmt.Fprintf(p.err, "Error: %s\n", message)
 }
 
 // Errorf writes a formatted error message.
@@ -98,7 +111,7 @@ func (p *Printer) Errorf(format string, args ...any) {
 }
 
 // Color reports whether colour codes are emitted. Useful for tests.
-func (p *Printer) Color() bool { return p.color }
+func (p *Printer) Color() bool { return p.colorOut }
 
 // Stdout returns the underlying success writer. Callers that need to write
 // raw bytes (e.g. an EOF newline from the REPL loop) use this rather than

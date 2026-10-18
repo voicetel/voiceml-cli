@@ -8,12 +8,16 @@ func registerQueues(r *Registry) {
 		{
 			Names:    []string{"list"},
 			Synopsis: "List queues.",
-			Usage:    "queues list",
-			Run: func(c *Context, _ []string, _ string) error {
+			Usage:    "queues list [json]",
+			Run: func(c *Context, _ []string, tail string) error {
 				if err := requireConfigured(c); err != nil {
 					return err
 				}
-				out, err := c.Client.Queues().List(c.Ctx, voiceml.ListPageParams{})
+				var params voiceml.ListPageParams
+				if err := parseOptionalJSON("queues list", tail, &params); err != nil {
+					return err
+				}
+				out, err := c.Client.Queues().List(c.Ctx, params)
 				return printResultG(c, out, err)
 			},
 		},

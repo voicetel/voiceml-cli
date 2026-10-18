@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/voicetel/voiceml-cli/internal/config"
 	"github.com/voicetel/voiceml-cli/internal/output"
 	"github.com/voicetel/voiceml-cli/internal/sdkclient"
 )
@@ -18,7 +19,18 @@ type Context struct {
 	Client  sdkclient.Client
 	Printer *output.Printer
 
-	OnConfigChanged func()
+	OnConfigChanged func(config.Change) error
+	ReadSecret      func() (string, error)
+}
+
+// UsageError reports invalid command-line input (exit status 2).
+type UsageError struct{ Err error }
+
+func (e *UsageError) Error() string { return e.Err.Error() }
+func (e *UsageError) Unwrap() error { return e.Err }
+
+func usageError(format string, args ...any) error {
+	return &UsageError{Err: fmt.Errorf(format, args...)}
 }
 
 // Handler is the signature every command implements.
@@ -99,15 +111,15 @@ func (r *Registry) Dispatch(c *Context, tokens []string, raw string) error {
 	}
 	g := r.FindGroup(head)
 	if g == nil {
-		return fmt.Errorf("unknown command %q — type `help` for the command list", head)
+		return usageError("unknown command %q — type `help` for the command list", head)
 	}
 	if len(tokens) < 2 {
-		return fmt.Errorf("%s: missing sub-command — try `help %s`", head, head)
+		return usageError("%s: missing sub-command — try `help %s`", head, head)
 	}
 	sub := tokens[1]
 	cmd := g.FindCommand(sub)
 	if cmd == nil {
-		return fmt.Errorf("%s: unknown sub-command %q — try `help %s`", head, sub, head)
+		return usageError("%s: unknown sub-command %q — try `help %s`", head, sub, head)
 	}
 	return cmd.Run(c, tokens[2:], tailFromRaw(raw, 2))
 }

@@ -39,7 +39,7 @@ func registerCalls(r *Registry) {
 		{
 			Names:    []string{"create"},
 			Synopsis: "Originate a new outbound call.",
-			Usage:    `calls create <json>  e.g. {"To":"+18005551234","From":"+18005550000","Url":"https://example.com/twiml"}`,
+			Usage:    `calls create <json>  e.g. {"To":"+14155550100","From":"+14155550101","Url":"https://example.com/twiml"}`,
 			Run: func(c *Context, _ []string, tail string) error {
 				if err := requireConfigured(c); err != nil {
 					return err

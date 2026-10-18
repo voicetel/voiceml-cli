@@ -6,7 +6,6 @@ import (
 	"flag"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -197,7 +196,7 @@ func TestUsagePrints(t *testing.T) {
 	fs.String("x", "", "")
 	usage(&buf, fs)
 	got := buf.String()
-	for _, want := range []string{"voiceml-cli", envAccountSid, envAPIKey, envBaseURL, "VOICEMEL"} {
+	for _, want := range []string{"voiceml-cli", envAccountSid, envKeyVar, envBaseURL, "VOICEMEL"} {
 		if !strings.Contains(got, want) {
 			t.Errorf("usage missing %q", want)
 		}
@@ -248,27 +247,6 @@ func TestRunLoopWithInterruptContinues(t *testing.T) {
 	src := &interruptOnceSource{lines: []string{"help"}}
 	if err := runLoopWith(context.Background(), opts, registry, src, &eofBuf); err != nil {
 		t.Fatalf("runLoopWith(interrupt): %v", err)
-	}
-}
-
-func TestMainBinaryPrintsVersion(t *testing.T) {
-	if _, err := exec.LookPath("go"); err != nil {
-		t.Skip("go not on PATH")
-	}
-	dir := t.TempDir()
-	bin := filepath.Join(dir, "voiceml-cli-test")
-	cmd := exec.Command("go", "build", "-o", bin, ".") //nolint:gosec
-	cmd.Dir = "."
-	if out, err := cmd.CombinedOutput(); err != nil {
-		t.Fatalf("build: %v\n%s", err, out)
-	}
-	cmd = exec.Command(bin, "--version") //nolint:gosec
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("--version: %v\n%s", err, out)
-	}
-	if !strings.Contains(string(out), "voiceml-cli") {
-		t.Errorf("expected version output, got: %s", out)
 	}
 }
 

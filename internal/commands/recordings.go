@@ -29,15 +29,19 @@ func registerRecordings(r *Registry) {
 		{
 			Names:    []string{"get"},
 			Synopsis: "Fetch recording metadata.",
-			Usage:    "recordings get <recording_sid>",
-			Run: func(c *Context, args []string, _ string) error {
+			Usage:    "recordings get <recording_sid> [json]",
+			Run: func(c *Context, args []string, tail string) error {
 				if err := requireConfigured(c); err != nil {
 					return err
 				}
 				if err := requireArgs("recordings get", args, 1, "<recording_sid>"); err != nil {
 					return err
 				}
-				out, err := c.Client.Recordings().Get(c.Ctx, args[0], nil)
+				var params voiceml.GetRecordingParams
+				if err := parseOptionalJSON("recordings get", skipArgs(tail, 1), &params); err != nil {
+					return err
+				}
+				out, err := c.Client.Recordings().Get(c.Ctx, args[0], &params)
 				return printResultG(c, out, err)
 			},
 		},

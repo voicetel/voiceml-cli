@@ -9,7 +9,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/voicetel/voiceml-cli/internal/config"
 	"github.com/voicetel/voiceml-cli/internal/output"
+	"github.com/voicetel/voiceml-cli/internal/repl"
 	"github.com/voicetel/voiceml-cli/internal/sdkclient"
 )
 
@@ -51,8 +53,9 @@ func newHarness(t *testing.T) *testHarness {
 		Ctx:     context.Background(),
 		Client:  h.client,
 		Printer: output.NewWithColor(h.out, h.err, false),
-		OnConfigChanged: func() {
+		OnConfigChanged: func(config.Change) error {
 			*h.cfgSet = true
+			return nil
 		},
 	}
 	return h
@@ -67,51 +70,11 @@ func (h *testHarness) dispatch(line string, registry *Registry) error {
 }
 
 func runLine(c *Context, r *Registry, line string) error {
-	tokens, raw, err := simpleTokenize(line)
+	p, err := repl.Parse(line)
 	if err != nil {
 		return err
 	}
-	if len(tokens) == 0 {
-		return nil
-	}
-	return r.Dispatch(c, tokens, raw)
-}
-
-func simpleTokenize(line string) ([]string, string, error) {
-	line = strings.TrimSpace(line)
-	if line == "" {
-		return nil, "", nil
-	}
-	var tokens []string
-	var cur strings.Builder
-	inQ := byte(0)
-	for i := 0; i < len(line); i++ {
-		ch := line[i]
-		if inQ != 0 {
-			if ch == inQ {
-				inQ = 0
-				continue
-			}
-			cur.WriteByte(ch)
-			continue
-		}
-		if ch == '"' || ch == '\'' {
-			inQ = ch
-			continue
-		}
-		if ch == ' ' || ch == '\t' {
-			if cur.Len() > 0 {
-				tokens = append(tokens, cur.String())
-				cur.Reset()
-			}
-			continue
-		}
-		cur.WriteByte(ch)
-	}
-	if cur.Len() > 0 {
-		tokens = append(tokens, cur.String())
-	}
-	return tokens, line, nil
+	return r.Dispatch(c, p.Tokens, p.Raw)
 }
 
 func TestHelpRoot(t *testing.T) {

@@ -35,11 +35,13 @@ type Client interface {
 // SDK client is constructed from options, we hold the construction state
 // and rebuild when credentials change.
 type realClient struct {
-	inner      *voiceml.Client
-	baseURL    string
-	accountSid string
-	apiKey     string
-	ua         string
+	inner          *voiceml.Client
+	baseURL        string
+	accountSid     string
+	apiKey         string
+	ua             string
+	diagnostics    *voiceml.DiagnosticsService
+	diagnosticsErr error
 }
 
 // New builds a real SDK-backed Client.
@@ -56,6 +58,7 @@ func (r *realClient) rebuild() {
 		BaseURL:    r.baseURL,
 		UserAgent:  r.ua,
 	}
+	r.diagnostics, r.diagnosticsErr = voiceml.NewDiagnosticsService(opts)
 	if r.accountSid == "" || r.apiKey == "" {
 		r.inner = nil
 		return
@@ -145,8 +148,13 @@ func (r *realClient) Messages() *voiceml.MessagesService {
 	return nil
 }
 func (r *realClient) Diagnostics() *voiceml.DiagnosticsService {
-	if c := r.innerOrNil(); c != nil {
-		return c.Diagnostics
+	return r.diagnostics
+}
+
+// DiagnosticsError reports invalid diagnostic transport configuration.
+func DiagnosticsError(c Client) error {
+	if r, ok := c.(*realClient); ok {
+		return r.diagnosticsErr
 	}
 	return nil
 }

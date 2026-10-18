@@ -133,15 +133,19 @@ func registerConferences(r *Registry) {
 		{
 			Names:    []string{"list-recordings"},
 			Synopsis: "List recordings for a conference.",
-			Usage:    "conferences list-recordings <conference_sid>",
-			Run: func(c *Context, args []string, _ string) error {
+			Usage:    "conferences list-recordings <conference_sid> [json]",
+			Run: func(c *Context, args []string, tail string) error {
 				if err := requireConfigured(c); err != nil {
 					return err
 				}
 				if err := requireArgs("conferences list-recordings", args, 1, "<conference_sid>"); err != nil {
 					return err
 				}
-				out, err := c.Client.Conferences().ListRecordings(c.Ctx, args[0], voiceml.ListCallRecordingsParams{})
+				var params voiceml.ListCallRecordingsParams
+				if err := parseOptionalJSON("conferences list-recordings", skipArgs(tail, 1), &params); err != nil {
+					return err
+				}
+				out, err := c.Client.Conferences().ListRecordings(c.Ctx, args[0], params)
 				return printResultG(c, out, err)
 			},
 		},

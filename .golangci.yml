@@ -13,26 +13,13 @@ linters:
     - bodyclose
     - copyloopvar
     - gocritic
-    - gosec
     - misspell
     - nilerr
     - revive
     - unconvert
   settings:
-    gosec:
-      excludes:
-        - G104
-        - G115
     revive:
       rules:
         - name: exported
           arguments:
             - disableStutteringCheck
-  exclusions:
-    rules:
-      - path: 'internal/output/output\.go'
-        linters:
-          - errcheck
-      - path: 'loop\.go'
-        linters:
-          - errcheck

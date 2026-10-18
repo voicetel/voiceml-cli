@@ -31,6 +31,9 @@ type lineSource interface {
 func runLoop(ctx context.Context, opts loopOptions) error {
 	registry := commands.BuildRegistry()
 	builtins, helpTopics, groupSubs := registry.CompletionData()
+	if err := config.PrepareHistory(opts.HistFile, repl.RecordHistory); err != nil {
+		return fmt.Errorf("repl: history: %w", err)
+	}
 	rl, err := readline.NewEx(&readline.Config{
 		Prompt:                 opts.Prompt,
 		HistoryFile:            opts.HistFile,
@@ -38,7 +41,7 @@ func runLoop(ctx context.Context, opts loopOptions) error {
 		InterruptPrompt:        "^C",
 		EOFPrompt:              "exit",
 		HistorySearchFold:      true,
-		DisableAutoSaveHistory: false,
+		DisableAutoSaveHistory: true,
 	})
 	if err != nil {
 		return fmt.Errorf("repl: init readline: %w", err)
@@ -50,17 +53,11 @@ func runLoopWith(ctx context.Context, opts loopOptions, registry *commands.Regis
 	defer func() { _ = src.Close() }()
 
 	cmdCtx := &commands.Context{
-		Ctx:     ctx,
-		Client:  opts.Client,
-		Printer: opts.Printer,
-		OnConfigChanged: func() {
-			opts.Cfg.AccountSid = opts.Client.AccountSid()
-			opts.Cfg.APIKey = opts.Client.APIKey()
-			opts.Cfg.BaseURL = opts.Client.BaseURL()
-			if err := config.Save(opts.Cfg); err != nil {
-				opts.Printer.Errorf("config: save: %v", err)
-			}
-		},
+		Ctx:             ctx,
+		Client:          opts.Client,
+		Printer:         opts.Printer,
+		OnConfigChanged: config.Update,
+		ReadSecret:      readSecret,
 	}
 
 	for {
@@ -69,11 +66,16 @@ func runLoopWith(ctx context.Context, opts loopOptions, registry *commands.Regis
 			continue
 		}
 		if errors.Is(err, io.EOF) {
-			fmt.Fprintln(eofOut)
-			return nil
+			_, err := fmt.Fprintln(eofOut)
+			return err
 		}
 		if err != nil {
 			return fmt.Errorf("repl: read line: %w", err)
+		}
+		if history, ok := src.(interface{ SaveHistory(string) error }); ok && repl.RecordHistory(line) {
+			if err := history.SaveHistory(line); err != nil {
+				return fmt.Errorf("repl: save history: %w", err)
+			}
 		}
 		if err := dispatchLine(cmdCtx, registry, line); err != nil {
 			if errors.Is(err, commands.ErrExit) {
