@@ -1,8 +1,8 @@
 # VoiceML CLI
 
-Interactive REPL for the [VoiceML REST API](https://voicetel.com/docs/api/v0.8/voiceml/) — outbound voice, AMD, conferences, queues, and Twilio-compatible resources on top of the [VoiceML Go SDK](../go).
+Interactive REPL for the [VoiceML REST API](https://voicetel.com/docs/api/v0.9/voiceml/) — outbound voice, AMD, conferences, queues, and Twilio-compatible resources on top of the [VoiceML Go SDK](../go).
 
-![Version](https://img.shields.io/badge/version-0.2.0-blue)
+![Version](https://img.shields.io/badge/version-0.2.1-blue)
 ![Go](https://img.shields.io/badge/go-1.22%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Platforms](https://img.shields.io/badge/platforms-linux%20%7C%20macos%20%7C%20windows-lightgrey)
@@ -28,7 +28,7 @@ make install  # → $GOPATH/bin/voiceml-cli
 
 ```text
 $ voiceml-cli
-VoiceML CLI 0.2.0  —  type `help` for commands, `exit` to quit.
+VoiceML CLI 0.2.1  —  type `help` for commands, `exit` to quit.
 Endpoint: https://voiceml.voicetel.com
 No credentials configured. Run `login <account_sid> <api_key>` or set env vars.
 
