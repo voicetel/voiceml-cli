@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/chzyer/readline v1.5.1
 	github.com/pelletier/go-toml/v2 v2.4.3
-	github.com/voicetel/voiceml-go-sdk v0.9.3
+	github.com/voicetel/voiceml-go-sdk v0.9.5
 	golang.org/x/term v0.47.0
 )
 
